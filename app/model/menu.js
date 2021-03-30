@@ -29,13 +29,6 @@ module.exports = app => {
       type: DataTypes.STRING,
       isEmail: true,
     },
-  }, {
-    timestamps: false,
-    underscored: true, // 注意需要加上这个， egg-sequelize只是简单的使用Object.assign对配置和默认配置做了merge, 如果不加这个 update_at会被转变成 updateAt故报错
-    // 禁止修改表名，默认情况下，sequelize将自动将所有传递的模型名称（define的第一个参数）转换为复数
-    // 但是为了安全着想，复数的转换可能会发生变化，所以禁止该行为
-    freezeTableName: true,
-    distinct: true, // 去重
   });
   // 根据参数获取用户
   Menu.findMenuAll = params => {

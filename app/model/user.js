@@ -8,6 +8,8 @@ module.exports = app => {
       unique: true,
       allowNull: false,
       primaryKey: true,
+      autoIncrement: true,
+      defaultValue: 0,
     },
     username: {
       type: STRING(30),
@@ -22,13 +24,15 @@ module.exports = app => {
       type: INTEGER,
       allowNull: false,
     },
-  }, {
-    timestamps: false,
-    underscored: true, // 注意需要加上这个， egg-sequelize只是简单的使用Object.assign对配置和默认配置做了merge, 如果不加这个 update_at会被转变成 updateAt故报错
-    // 禁止修改表名，默认情况下，sequelize将自动将所有传递的模型名称（define的第一个参数）转换为复数
-    // 但是为了安全着想，复数的转换可能会发生变化，所以禁止该行为
-    freezeTableName: true,
-    distinct: true, // 去重
+    // 权限
+    jurisdiction: {
+      type: INTEGER,
+      allowNull: false,
+    },
+    // 上级会员的spid
+    uiid: {
+      type: INTEGER,
+    },
   });
   // 根据参数获取用户
   User.getUserByArgs = params => {
@@ -42,8 +46,8 @@ module.exports = app => {
     return User.findAll({ where: params.data, limit: params.Pagesize, offset: params.Pagesize * (params.current - 1) });
   };
   // 查询总数
-  User.findUserAll = () => {
-    return User.count({});
+  User.findUserAll = params => {
+    return User.count({ where: params });
   };
   // 修改用户信息
   User.editUser = async (params, id) => {
@@ -71,6 +75,7 @@ module.exports = app => {
     // this.app.mysql.literals.now
     fields.spid = Math.round(new Date().getTime() / 1000);
     fields.password = User.hashPassword(fields.password);
+    console.log(fields, '==>fields');
     return User.create(fields); // 在数据库里创建一条数据
   };
   // 将密码跟加密的密码对比
@@ -81,7 +86,7 @@ module.exports = app => {
     app.model.User.hasOne(app.model.Menu, { foreignKey: 'spid' });
   };
   User.associate = () => {
-    app.model.User.hasOne(app.model.Server, { foreignKey: 'spid' });
+    app.model.User.hasMany(app.model.Server, { foreignKey: 'spid', targetKey: 'spid' });
   };
   return User;
 };

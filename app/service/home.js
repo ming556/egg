@@ -45,6 +45,7 @@ class HomeController extends Service {
     const body = {
       msg: '登录成功',
       spid: user.id,
+      jurisdiction: user.jurisdiction,
       code: 200,
     };
     return body;
@@ -52,28 +53,48 @@ class HomeController extends Service {
   // 查询所有用户
   async all(val) {
     const { ctx } = this;
-    // 查询总条数
-    const count = await ctx.model.User.findUserAll(); // 总数
-    const current = val.current || 1; // 当前页码
-    const Pagesize = val.current || 10; // 每页条数
-    // const data = {
-    //   username,
-    // };
-    const totalNum = await ctx.model.User.findUser({ Pagesize, current });
-    console.log(totalNum, '1');
-    if (totalNum) {
+    const spid = val.spid;
+    const user = await ctx.model.User.getUserByArgs({ spid }, '');
+    if (user) {
+      let data = {};
+      if (user.jurisdiction !== 0) {
+        if (user.jurisdiction === 1) {
+          data = {
+            uiid: user.spid,
+          };
+        } else {
+          data = {
+            spid,
+          };
+        }
+      }
+      // 查询总条数
+      const count = await ctx.model.User.findUserAll(data); // 总数
+      console.log(count);
+      const current = val.current || 1; // 当前页码
+      const Pagesize = val.current || 10; // 每页条数
+      const totalNum = await ctx.model.User.findUser({ data, Pagesize, current });
+      if (totalNum) {
+        const body = {
+          data: {
+            data: totalNum,
+            current,
+            Pagesize,
+            count,
+          },
+          msg: '查询成功',
+          code: 200,
+        };
+        return body;
+      }
+    } else {
       const body = {
-        data: {
-          data: totalNum,
-          current,
-          Pagesize,
-          count,
-        },
-        msg: '查询成功',
-        code: 200,
+        msg: '查询失败，用户不存在',
+        code: 201,
       };
       return body;
     }
+
   }
   // 修改用户信息
   async edit(val) {
@@ -112,7 +133,7 @@ class HomeController extends Service {
       return body;
     }
   }
-  // 查询用户信息
+  // 查询账户信息
   async editmenu(val) {
     const { ctx } = this;
     // 判断id是否正确

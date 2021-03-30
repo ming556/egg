@@ -20,7 +20,14 @@ class HomeController extends Controller {
     const username = ctx.query.username;
     const password = ctx.query.password;
     // 创建token
-    const token = this.app.jwt.sign({ username, password }, '123456', { expiresIn: '30 days' }); // token签名 有效期为1小时
+    const token = this.app.jwt.sign({ username, password }, '123456', { expiresIn: '30 days' }); // token签名 有效期为30天
+    // ctx.cookies.set('token', token, {
+    //   maxAge: '30 days',
+    //   path: '/',
+    //   domain: 'localhost',
+    //   httpOnly: false,
+    // });
+    // await this.app.redis.set(username, token);
     ctx.body = {
       data: body,
       token,
